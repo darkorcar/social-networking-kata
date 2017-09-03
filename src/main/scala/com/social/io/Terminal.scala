@@ -16,6 +16,8 @@ trait Terminal {
 
     case class Posts(user: String) extends Command
 
+    case class Follow(user: String, followed: String) extends Command
+
     def apply(command:String): Command =
       CommandParser.parseAsCommand(command)
 
@@ -39,8 +41,13 @@ trait Terminal {
       }
 
     def listPosts: Parser[Command.Posts] =
-      "(?:^|(?:[.!?]\\s))(\\w+)".r ^^ {
+      "(?:^|(?:[.!?]\\s))(\\w+)(?:$)".r ^^ {
         case user => Command.Posts(user)
+      }
+
+    def follow: Parser[Command.Follow] =
+      user ~ ("follows".r ~> "(\\w+)".r) ^^ {
+        case user ~ followed => Command.Follow(user, followed)
       }
 
     def user: Parser[String] =
@@ -50,7 +57,7 @@ trait Terminal {
       ".*".r ^^ (_.toString)
 
     private val parser: CommandParser.Parser[Command] =
-      quit | createPost | listPosts
+      quit | createPost | listPosts | follow
   }
 
 

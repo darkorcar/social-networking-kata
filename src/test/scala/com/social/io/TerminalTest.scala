@@ -37,6 +37,12 @@ class TerminalTest extends BaseSpec with Terminal {
       Command("Alice something") shouldEqual Command.Unknown("Alice something")
 
     }
+
+    "create Follow command for user follows other user" in {
+
+      Command("Charlie follows Alice") shouldEqual Command.Follow("Charlie", "Alice")
+
+    }
   }
 
 }
