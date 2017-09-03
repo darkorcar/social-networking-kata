@@ -42,6 +42,16 @@ class TerminalTest extends BaseSpec with Terminal {
 
       Command("Charlie follows Alice") shouldEqual Command.Follow("Charlie", "Alice")
 
+      Command("Charlie loves Alice") shouldEqual Command.Unknown("Charlie loves Alice")
+
+    }
+
+    "create ShowWall command for user wall input" in {
+
+      Command("Charlie wall") shouldEqual Command.ShowWall("Charlie")
+
+      Command("Charlie wally") shouldEqual Command.Unknown("Charlie wally")
+
     }
   }
 
