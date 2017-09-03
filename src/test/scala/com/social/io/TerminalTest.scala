@@ -12,6 +12,12 @@ class TerminalTest extends BaseSpec with Terminal {
 
     }
 
+    "create Quit command for q | quite | exit input" in {
+      Command("q") shouldEqual Command.Quit
+      Command("quit") shouldEqual Command.Quit
+      Command("exit") shouldEqual Command.Quit
+    }
+    
   }
 
 }
