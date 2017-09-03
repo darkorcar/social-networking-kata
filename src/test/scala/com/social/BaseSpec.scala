@@ -1,5 +1,5 @@
 package com.social
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.{Matchers, WordSpecLike}
 
-abstract class BaseSpec extends WordSpec with Matchers
+trait BaseSpec extends WordSpecLike with Matchers
