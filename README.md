@@ -1,5 +1,4 @@
-Social Networking Kata
-From [sandromancuso/social_networking_kata](https://github.com/sandromancuso/social_networking_kata)
+# Social Networking Kata
 ----------------------
 
 Implement a console-based social networking application (similar to Twitter) satisfying the scenarios below.
@@ -49,3 +48,4 @@ Implement a console-based social networking application (similar to Twitter) sat
 
 **IMPORTANT:**  Implement the requirements focusing on **writing the best code** you can produce.
 
+From [sandromancuso/social_networking_kata](https://github.com/sandromancuso/social_networking_kata)
