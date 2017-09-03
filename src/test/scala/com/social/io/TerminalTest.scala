@@ -8,7 +8,7 @@ class TerminalTest extends BaseSpec with Terminal {
 
     "create Unknown command for illegal input" in {
 
-      Command("unknown") shouldEqual Command.Unknown("unknown")
+      Command("unknown something") shouldEqual Command.Unknown("unknown something")
 
     }
 
@@ -27,6 +27,14 @@ class TerminalTest extends BaseSpec with Terminal {
       Command("Alice ->   I love the weather today") shouldEqual Command.Post("Alice", "I love the weather today")
 
       Command("Alice-> I love the weather today") shouldEqual Command.Unknown("Alice-> I love the weather today")
+
+    }
+
+    "create Posts command for user read post input" in {
+
+      Command("Alice") shouldEqual Command.Posts("Alice")
+
+      Command("Alice something") shouldEqual Command.Unknown("Alice something")
 
     }
   }
