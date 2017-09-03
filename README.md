@@ -1,5 +1,4 @@
 Social Networking Kata
-
 From [sandromancuso/social_networking_kata](https://github.com/sandromancuso/social_networking_kata)
 ----------------------
 
