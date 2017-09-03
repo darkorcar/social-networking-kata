@@ -12,6 +12,8 @@ trait Terminal {
 
     case object Quit extends Command
 
+    case class Post(user: String, post: String) extends Command
+
     def apply(command:String): Command =
       CommandParser.parseAsCommand(command)
 
@@ -25,11 +27,23 @@ trait Terminal {
         case _ => Command.Unknown(s)
       }
 
-    private def quit: Parser[Command.Quit.type] =
+    def quit: Parser[Command.Quit.type] =
       "quit|q|exit".r ^^ (_ => Command.Quit)
 
+    def createPost: Parser[Command.Post] =
+      user ~ ("->".r ~> text) ^^ {
+        case user ~ post =>
+          Command.Post(user, post)
+      }
+
+    def user: Parser[String] =
+    "(?:^|(?:[.!?]\\s))(\\w+)(?=\\s)".r ^^ (_.toString)
+
+    def text: Parser[String] =
+      ".*".r ^^ (_.toString)
+
     private val parser: CommandParser.Parser[Command] =
-      quit
+      quit | createPost
   }
 
 
