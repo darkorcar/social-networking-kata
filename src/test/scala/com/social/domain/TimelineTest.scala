@@ -7,7 +7,7 @@ class TimelineTest extends BaseAkkaSpec("TimelineTest") with FixedClock {
 
   "Sending Publish to Timeline" should {
 
-    "result in adding published post to the list" in {
+    "result in adding published post to the list of posts" in {
 
       val timeline = system.actorOf(Props(new Timeline {
         override protected val clock = fixedClock(10000)

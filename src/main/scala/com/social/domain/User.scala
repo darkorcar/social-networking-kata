@@ -1,8 +1,6 @@
 package com.social.domain
 
 import akka.actor.{Actor, ActorRef, ActorRefFactory, Props}
-import com.social.domain.Timeline.Publish
-import com.social.domain.User.Post
 
 class User(name: String, timelineMaker: ActorRefFactory => ActorRef)
     extends Actor {
@@ -10,8 +8,10 @@ class User(name: String, timelineMaker: ActorRefFactory => ActorRef)
   private val timeline = timelineMaker(context)
 
   override def receive = {
-    case Post(text) =>
-      timeline ! Publish(text)
+    case User.Post(text) =>
+      timeline ! Timeline.Publish(text)
+    case User.GetPosts =>
+      timeline forward Timeline.GetPosts
   }
 
 }
@@ -19,6 +19,8 @@ class User(name: String, timelineMaker: ActorRefFactory => ActorRef)
 object User {
 
   case class Post(text: String)
+
+  case object GetPosts
 
   def props(name: String): Props = Props(new User(name, timelineMaker))
 
