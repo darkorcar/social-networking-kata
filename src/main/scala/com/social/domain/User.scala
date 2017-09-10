@@ -1,14 +1,16 @@
 package com.social.domain
 
-import akka.actor.{Actor, ActorRef, ActorRefFactory, Props}
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorRefFactory, Props}
 
 class User(name: String, timelineMaker: ActorRefFactory => ActorRef)
-    extends Actor {
+    extends Actor
+    with ActorLogging {
 
   private val timeline = timelineMaker(context)
 
   override def receive = {
     case User.Post(text) =>
+      log.debug("""posting "{}"""", text)
       timeline ! Timeline.Publish(text)
     case User.GetPosts =>
       timeline forward Timeline.GetPosts
@@ -27,7 +29,6 @@ object User {
   def props(name: String, maker: ActorRefFactory => ActorRef): Props =
     Props(new User(name, maker))
 
-  private val timelineMaker = (maker: ActorRefFactory) =>
-    maker.actorOf(Props[Timeline], "timeline")
+  private val timelineMaker = (maker: ActorRefFactory) => maker.actorOf(Props[Timeline], "timeline")
 
 }
