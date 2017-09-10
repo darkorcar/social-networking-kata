@@ -1,15 +1,21 @@
 package com.social
 
-import akka.actor.{ActorRef, ActorSystem, Props}
+import java.util.concurrent.TimeUnit
+
+import akka.actor.{ActorRef, ActorSystem}
 import akka.event.Logging
+import akka.pattern.ask
+import akka.util.Timeout
+import com.social.domain.Post
 import com.social.io.Terminal
+import com.social.util.ClockProvider
 
 import scala.annotation.tailrec
 import scala.concurrent.Await
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{DurationInt, _}
 import scala.io.StdIn
 
-class SocialApp(system: ActorSystem) extends Terminal {
+class SocialApp(system: ActorSystem) extends Terminal with ClockProvider {
 
   private val log = Logging(system, getClass.getName)
 
@@ -33,6 +39,9 @@ class SocialApp(system: ActorSystem) extends Terminal {
       case Command.Post(user, message) =>
         post(user, message)
         commandLoop()
+      case Command.Posts(user) =>
+        printPosts(user)
+        commandLoop()
       case Command.Quit =>
         system.terminate()
       case Command.Unknown(command) =>
@@ -47,6 +56,29 @@ class SocialApp(system: ActorSystem) extends Terminal {
 
   private def post(user: String, text: String): Unit = {
     social ! Social.UserPost(user, text)
+  }
+
+  private def printPosts(user: String): Unit = {
+    implicit val timeout: Timeout = Duration(5, SECONDS)
+    val response = (social ? Social.UserPosts(user)).mapTo[List[Post]]
+    val r = Await.result(response, 5 second)
+    r.foreach { post =>
+      val elapsedTime = now - post.timestamp
+      println(s"${post.text} (${prettyPrint(elapsedTime)} ago)")
+    }
+  }
+
+  private def prettyPrint(millis: Long) = {
+    val secs = millis / 1000
+    val mins = (millis / 1000) / 60
+    val hours = (millis / 1000) / (60 * 60)
+    val days = ((millis / 1000) / (60 * 60)) / 24
+
+    if (days > 0) s"${Duration.create(days, TimeUnit.DAYS).toString()}"
+    else if (hours > 0) s"${Duration.create(hours, TimeUnit.HOURS).toString()}"
+    else if (mins > 0) s"${Duration.create(mins, TimeUnit.MINUTES).toString()}"
+    else if (secs > 0) s"${Duration.create(secs, TimeUnit.SECONDS).toString()}"
+    else s"1 second ago"
   }
 }
 

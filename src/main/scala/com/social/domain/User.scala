@@ -13,6 +13,7 @@ class User(name: String, timelineMaker: ActorRefFactory => ActorRef)
       log.debug("""posting "{}"""", text)
       timeline ! Timeline.Publish(text)
     case User.GetPosts =>
+      log.debug("retrieving posts")
       timeline forward Timeline.GetPosts
   }
 

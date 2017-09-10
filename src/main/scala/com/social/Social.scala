@@ -9,6 +9,9 @@ class Social(userMaker: (ActorRefFactory, String) => ActorRef) extends Actor wit
     case Social.UserPost(userId, text) =>
       val userRef = getOrCreateUser(userId)
       userRef ! User.Post(text)
+    case Social.UserPosts(userId) =>
+      val userRef = getOrCreateUser(userId)
+      userRef forward User.GetPosts
   }
 
   private def getOrCreateUser(userId: String): ActorRef = {
@@ -27,6 +30,8 @@ class Social(userMaker: (ActorRefFactory, String) => ActorRef) extends Actor wit
 object Social {
 
   case class UserPost(user: String, text: String)
+
+  case class UserPosts(user: String)
 
   def props: Props = Props(new Social(userMaker))
 

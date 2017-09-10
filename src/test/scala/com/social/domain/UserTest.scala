@@ -24,7 +24,7 @@ class UserTest extends BaseAkkaSpec("UserActorTest") with FixedClock {
       val timeline = TestProbe()
       val user = system.actorOf(
         User.props("Alice", (_: ActorRefFactory) => timeline.ref),
-        "alice")
+        "bob")
 
       user ! User.Post("I love the weather today")
 
@@ -43,7 +43,7 @@ class UserTest extends BaseAkkaSpec("UserActorTest") with FixedClock {
       }))
 
       val user = system.actorOf(
-        User.props("Alice", m => timeline), "alice")
+        User.props("Alice", m => timeline), "john")
 
       user ! User.Post("I love the weather today")
 
