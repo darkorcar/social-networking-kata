@@ -12,10 +12,15 @@ class Social(userMaker: (ActorRefFactory, String) => ActorRef) extends Actor wit
     case Social.UserPosts(userId) =>
       val userRef = getOrCreateUser(userId)
       userRef forward User.GetPosts
+    case Social.UserFollow(user, followed) =>
+      for {
+        userRef <- getUser(user)
+        followedRef <- getUser(followed)
+      } yield userRef ! User.Follow(followedRef)
   }
 
   private def getOrCreateUser(userId: String): ActorRef = {
-    context.child(userId) match {
+    getUser(userId) match {
       case Some(child) => child
       case None        => createUser(userId)
     }
@@ -25,6 +30,10 @@ class Social(userMaker: (ActorRefFactory, String) => ActorRef) extends Actor wit
     log.debug(s"""creating user "$userId"""")
     userMaker(context, userId)
   }
+
+  private def getUser(userId: String): Option[ActorRef] = {
+    context.child(userId)
+  }
 }
 
 object Social {
@@ -32,6 +41,8 @@ object Social {
   case class UserPost(user: String, text: String)
 
   case class UserPosts(user: String)
+
+  case class UserFollow(user: String, followed: String)
 
   def props: Props = Props(new Social(userMaker))
 

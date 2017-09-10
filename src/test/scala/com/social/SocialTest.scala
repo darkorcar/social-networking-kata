@@ -1,6 +1,6 @@
 package com.social
 
-import akka.actor.{ActorRefFactory, Props}
+import akka.actor.{ActorRef, ActorRefFactory, Props}
 import akka.testkit.TestProbe
 import com.social.Social.{UserPost, UserPosts}
 import com.social.domain.{Post, User}
@@ -39,7 +39,29 @@ class SocialTest extends BaseAkkaSpec("SocialTest") {
       user.expectMsg(User.GetPosts)
 
       user.lastSender shouldBe self
+    }
 
+  }
+
+  "Sending UserFollow" should {
+
+    "result in sending Follow message to User actor" in {
+
+      val social = system.actorOf(Social.props, "social4")
+
+      social ! Social.UserPost("john", "hello")
+
+      val userJohn = TestProbe().expectActor("/user/social4/john/")
+      val testProbeJohn = TestProbe()
+      testProbeJohn.watch(userJohn)
+
+      social ! Social.UserPost("bob", "hi")
+
+      val userBob = TestProbe().expectActor("/user/social4/bob/")
+
+      social ! Social.UserFollow("john", "bob")
+
+      //testProbeJohn.expectMsg(User.Follow(userBob))
     }
 
   }

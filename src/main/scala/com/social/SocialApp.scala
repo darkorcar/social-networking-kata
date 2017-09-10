@@ -42,6 +42,9 @@ class SocialApp(system: ActorSystem) extends Terminal with ClockProvider {
       case Command.Posts(user) =>
         printPosts(user)
         commandLoop()
+      case Command.Follow(user, followed) =>
+        follow(user, followed)
+        commandLoop()
       case Command.Quit =>
         system.terminate()
       case Command.Unknown(command) =>
@@ -66,6 +69,10 @@ class SocialApp(system: ActorSystem) extends Terminal with ClockProvider {
       val elapsedTime = now - post.timestamp
       println(s"${post.text} (${prettyPrint(elapsedTime)} ago)")
     }
+  }
+
+  private def follow(user: String, followed: String): Unit = {
+    social ! Social.UserFollow(user, followed)
   }
 
   private def prettyPrint(millis: Long) = {

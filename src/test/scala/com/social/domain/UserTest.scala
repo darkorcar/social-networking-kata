@@ -1,7 +1,7 @@
 package com.social.domain
 
 import akka.actor.{ActorRef, ActorRefFactory, Props}
-import akka.testkit.TestProbe
+import akka.testkit.{TestActorRef, TestProbe}
 import com.social.{BaseAkkaSpec, FixedClock}
 
 import scala.language.postfixOps
@@ -50,6 +50,23 @@ class UserTest extends BaseAkkaSpec("UserActorTest") with FixedClock {
       user ! User.GetPosts
 
       expectMsg(List(Post("I love the weather today", 10000)))
+
+    }
+
+  }
+
+  "Sending Follow to User" should {
+
+    "result in adding followed user to the list of following users" in {
+
+//      val timeline = TestProbe()
+//      val timelineMaker = (_: ActorRefFactory) => timeline.ref
+//      val user = TestActorRef(new User("john", timelineMaker))
+//      val followed = TestProbe()
+//
+//      user ! User.Follow(followed.ref)
+//
+//      user.underlyingActor.following shouldBe List()
 
     }
 
