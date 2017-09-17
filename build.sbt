@@ -10,7 +10,8 @@ lazy val dependencies = Seq(
   "ch.qos.logback"           %  "logback-classic"            % logbackVer,
   "org.scala-lang.modules"   %% "scala-parser-combinators"   % scalaParserVer,
   "com.typesafe.akka"        %% "akka-testkit"               % akkaVer            % "test",
-  "org.scalatest"            %% "scalatest"                  % scalaTestVer       % "test"
+  "org.scalatest"            %% "scalatest"                  % scalaTestVer       % "test",
+  "org.scalamock"            %% "scalamock-scalatest-support" % "3.6.0"           % "test"
 )
 
 name := "social-networking-kata"
