@@ -15,6 +15,20 @@ class UserTest extends BaseAkkaSpec("UserActorTest") with FixedClock {
       TestProbe().expectActor("/user/alice/timeline")
     }
 
+    "result in creating a child actor with the name 'wall'" in {
+      system.actorOf(User.props("Bob"), "bob")
+      TestProbe().expectActor("/user/bob/wall")
+    }
+
+    "result in subscribing to its 'wall'" in {
+      val timeline = TestProbe()
+      val timelineMaker = (_: ActorRefFactory) => timeline.ref
+      val wall = TestProbe()
+      val wallMaker = (_: ActorRefFactory) => wall.ref
+      val user = system.actorOf(User.props("Chris", timelineMaker, wallMaker), "chris")
+
+      timeline.expectMsg(Timeline.Subscribe(wall.ref))
+    }
   }
 
   "Sending Post to User" should {
@@ -22,9 +36,13 @@ class UserTest extends BaseAkkaSpec("UserActorTest") with FixedClock {
     "result in sending Post to users Timeline" in {
 
       val timeline = TestProbe()
-      val user = system.actorOf(
-        User.props("Alice", (_: ActorRefFactory) => timeline.ref),
-        "bob")
+      val timelineMaker = (_: ActorRefFactory) => timeline.ref
+      val wall = TestProbe()
+      val wallMaker = (_: ActorRefFactory) => wall.ref
+
+      val user = system.actorOf(User.props("John", timelineMaker, wallMaker), "john")
+
+      timeline.expectMsg(Timeline.Subscribe(wall.ref))
 
       user ! User.Post("I love the weather today")
 
@@ -42,8 +60,9 @@ class UserTest extends BaseAkkaSpec("UserActorTest") with FixedClock {
         override protected val clock = fixedClock(10000)
       }))
 
-      val user = system.actorOf(
-        User.props("Alice", m => timeline), "john")
+      val wall = system.actorOf(Props(new Wall()))
+
+      val user = system.actorOf(User.props("Jim", m => timeline, w => wall), "jim")
 
       user ! User.Post("I love the weather today")
 
@@ -55,21 +74,43 @@ class UserTest extends BaseAkkaSpec("UserActorTest") with FixedClock {
 
   }
 
-  "Sending Follow to User" should {
+  "Sending Subscribe to User" should {
 
-    "result in adding followed user to the list of following users" in {
+    "result in sending SubscribeToWall to the subscribed user" in {
 
-//      val timeline = TestProbe()
-//      val timelineMaker = (_: ActorRefFactory) => timeline.ref
-//      val user = TestActorRef(new User("john", timelineMaker))
-//      val followed = TestProbe()
-//
-//      user ! User.Follow(followed.ref)
-//
-//      user.underlyingActor.following shouldBe List()
+      val timeline = TestProbe()
+      val timelineMaker = (_: ActorRefFactory) => timeline.ref
+      val wall = TestProbe()
+      val wallMaker = (_: ActorRefFactory) => wall.ref
 
+      val user = system.actorOf(User.props("Tim", timelineMaker, wallMaker), "Tim")
+
+      val subscribedUser = TestProbe()
+
+      user ! User.SubscribeTo(subscribedUser.ref)
+
+      subscribedUser.expectMsg(User.SubscribeToWall(wall.ref))
     }
 
   }
 
+  "Sending SubscribeToWall to User" should {
+
+    "result in sending Subscribe to its Timeline" in {
+
+      val timeline = TestProbe()
+      val timelineMaker = (_: ActorRefFactory) => timeline.ref
+      val wall = TestProbe()
+      val wallMaker = (_: ActorRefFactory) => wall.ref
+
+      val user = system.actorOf(User.props("Tom", timelineMaker, wallMaker), "Tom")
+
+      timeline.expectMsg(Timeline.Subscribe(wall.ref))
+
+      user ! User.SubscribeToWall(wall.ref)
+
+      timeline.expectMsg(Timeline.Subscribe(wall.ref))
+    }
+
+  }
 }
