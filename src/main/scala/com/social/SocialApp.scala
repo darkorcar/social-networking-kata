@@ -1,21 +1,19 @@
 package com.social
 
-import java.util.concurrent.TimeUnit
-
 import akka.actor.{ActorRef, ActorSystem}
 import akka.event.Logging
 import akka.pattern.ask
 import akka.util.Timeout
-import com.social.domain.Post
+import com.social.domain.{Post, WallPost}
 import com.social.io.Terminal
-import com.social.util.ClockProvider
+import com.social.util.{ClockProvider, PrettyPrintDuration}
 
 import scala.annotation.tailrec
 import scala.concurrent.Await
 import scala.concurrent.duration.{DurationInt, _}
 import scala.io.StdIn
 
-class SocialApp(system: ActorSystem) extends Terminal with ClockProvider {
+class SocialApp(system: ActorSystem) extends Terminal with ClockProvider with PrettyPrintDuration {
 
   private val log = Logging(system, getClass.getName)
 
@@ -44,6 +42,9 @@ class SocialApp(system: ActorSystem) extends Terminal with ClockProvider {
         commandLoop()
       case Command.Follow(user, followed) =>
         follow(user, followed)
+        commandLoop()
+      case Command.ShowWall(user) =>
+        showWall(user)
         commandLoop()
       case Command.Quit =>
         system.terminate()
@@ -75,18 +76,16 @@ class SocialApp(system: ActorSystem) extends Terminal with ClockProvider {
     social ! Social.UserFollow(user, followed)
   }
 
-  private def prettyPrint(millis: Long) = {
-    val secs = millis / 1000
-    val mins = (millis / 1000) / 60
-    val hours = (millis / 1000) / (60 * 60)
-    val days = ((millis / 1000) / (60 * 60)) / 24
-
-    if (days > 0) s"${Duration.create(days, TimeUnit.DAYS).toString()}"
-    else if (hours > 0) s"${Duration.create(hours, TimeUnit.HOURS).toString()}"
-    else if (mins > 0) s"${Duration.create(mins, TimeUnit.MINUTES).toString()}"
-    else if (secs > 0) s"${Duration.create(secs, TimeUnit.SECONDS).toString()}"
-    else s"1 second ago"
+  private def showWall(user: String): Unit = {
+    implicit val timeout: Timeout = Duration(5, SECONDS)
+    val respose = (social ? Social.UserWall(user)).mapTo[List[WallPost]]
+    val r = Await.result(respose, 5 seconds)
+    r.foreach { userPost =>
+      val elapsedTime = now - userPost.post.timestamp
+      println(s"${userPost.user} - ${userPost.post.text} (${prettyPrint(elapsedTime)} ago)")
+    }
   }
+
 }
 
 object SocialApp {

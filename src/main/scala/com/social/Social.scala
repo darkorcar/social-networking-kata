@@ -6,17 +6,23 @@ import com.social.domain.User
 class Social(userMaker: (ActorRefFactory, String) => ActorRef) extends Actor with ActorLogging {
 
   override def receive = {
+
     case Social.UserPost(userId, text) =>
       val userRef = getOrCreateUser(userId)
       userRef ! User.Post(text)
+
     case Social.UserPosts(userId) =>
       val userRef = getOrCreateUser(userId)
       userRef forward User.GetPosts
+
     case Social.UserFollow(user, followed) =>
-      for {
-        userRef <- getUser(user)
-        followedRef <- getUser(followed)
-      } yield userRef ! User.Follow(followedRef)
+      val userRef = getOrCreateUser(user)
+      val followedRef = getOrCreateUser(followed)
+      userRef ! User.SubscribeTo(followedRef)
+
+    case Social.UserWall(userId) =>
+      val userRef = getOrCreateUser(userId)
+      userRef forward User.GetWall
   }
 
   private def getOrCreateUser(userId: String): ActorRef = {
@@ -44,10 +50,13 @@ object Social {
 
   case class UserFollow(user: String, followed: String)
 
+  case class UserWall(user: String)
+
   def props: Props = Props(new Social(userMaker))
 
   def props(maker: (ActorRefFactory, String) => ActorRef): Props = Props(new Social(maker))
 
-  private val userMaker = (maker: ActorRefFactory, name: String) => maker.actorOf(User.props(name), name)
+  private val userMaker = (maker: ActorRefFactory, name: String) =>
+    maker.actorOf(User.props(name), name)
 
 }

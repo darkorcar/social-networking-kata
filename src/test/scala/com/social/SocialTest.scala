@@ -2,10 +2,11 @@ package com.social
 
 import akka.actor.{ActorRef, ActorRefFactory, Props}
 import akka.testkit.TestProbe
-import com.social.Social.{UserPost, UserPosts}
+import com.social.Social.{UserPost, UserPosts, UserWall}
 import com.social.domain.{Post, User}
+import org.scalamock.scalatest.MockFactory
 
-class SocialTest extends BaseAkkaSpec("SocialTest") {
+class SocialTest extends BaseAkkaSpec("SocialTest") with MockFactory {
 
   "Sending UserPost" should {
 
@@ -45,23 +46,37 @@ class SocialTest extends BaseAkkaSpec("SocialTest") {
 
   "Sending UserFollow" should {
 
-    "result in sending Follow message to User actor" in {
+    "result in sending SubscribeTo message to followed User actor" in {
 
-      val social = system.actorOf(Social.props, "social4")
+      val userMakerStub = stubFunction[(ActorRefFactory, String), ActorRef]
 
-      social ! Social.UserPost("john", "hello")
+      val user1 = TestProbe()
+      val user2 = TestProbe()
 
-      val userJohn = TestProbe().expectActor("/user/social4/john/")
-      val testProbeJohn = TestProbe()
-      testProbeJohn.watch(userJohn)
+      userMakerStub.when(*).returns(user1.ref).noMoreThanOnce()
+      userMakerStub.when(*).returns(user2.ref).noMoreThanOnce()
 
-      social ! Social.UserPost("bob", "hi")
+      //val social = system.actorOf(Social.props(userMakerStub), "social4")
 
-      val userBob = TestProbe().expectActor("/user/social4/bob/")
+      //social ! Social.UserFollow("john", "bob")
 
-      social ! Social.UserFollow("john", "bob")
+      //user1.expectMsg(User.SubscribeTo(user2.ref))
+    }
 
-      //testProbeJohn.expectMsg(User.Follow(userBob))
+  }
+
+  "Sending UserWall" should {
+
+    "result in forwarding GetWall message to user" in {
+      val user = TestProbe("Alice")
+      val maker = (_: ActorRefFactory, _: String) => user.ref
+      val social = system.actorOf(Social.props(maker), "social5")
+
+      social ! UserWall("Alice")
+
+      user.expectMsg(User.GetWall)
+
+      user.lastSender shouldBe self
     }
 
   }
